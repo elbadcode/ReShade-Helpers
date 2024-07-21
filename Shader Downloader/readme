@@ -1,1 +1,3 @@
 easily download shaders through official installer without having to install on an exe
+
+dll next to the bat file is my fork that also makes the main path always be the dll path, keeping files out of the game folder
