@@ -1,3 +1,5 @@
+//needs adjustment, way too quick but could be cool
+
 #include "ReShade.fxh"
 
 #define PI 3.14159265
