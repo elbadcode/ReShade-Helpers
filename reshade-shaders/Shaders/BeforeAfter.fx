@@ -3,6 +3,11 @@
 '-------------------/
 /*
 Before-After PS (version 2.0.0)
+EXTREMELY USEFUL FOR SHOWCASING GRAPHICS PLEASE USE IT
+
+JUST BIND A KEY TO PAUSE
+
+Limitations: no speed control but I picked like a perfect speed for demonstration ngl, also pause doesn't stop the pingpong timer so you have to wait for each cycle to finish - addressing this issue with a change to actual reshade codebase
 
 Copyright:
 This code © 2018-2023 Jakub Maksymilian Fober
