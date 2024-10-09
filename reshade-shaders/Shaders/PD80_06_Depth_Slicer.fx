@@ -1,5 +1,7 @@
 /*
-    Description : PD80 04 Magical Rectangle for Reshade https://reshade.me/
+
+    Horror Movie Vibes
+    Description : PD80 06 Depth slicer for reshade https://reshade.me/
     Author      : prod80 (Bas Veth)
     License     : MIT, Copyright (c) 2020 prod80
 
