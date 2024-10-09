@@ -1,4 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
+// Literally the original shader but you get several layers. Great for blending in subtle effects like ascii or halftone with depth masking
+//
 //
 // DH_UBER_MASK 0.3.1
 //
