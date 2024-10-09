@@ -40,11 +40,23 @@ namespace pd80_magicalrectangle
     //// UI ELEMENTS ////////////////////////////////////////////////////////////////
 
     uniform bool Pause <
-    ui_category = "Separation Edge";
-    ui_category_closed = true;
+    ui_category = "Controls";
+    ui_category_closed = false;
     ui_label = "Pause";
 > = false;
-
+    uniform bool MouseTrack <
+    ui_category = "Controls";
+    ui_category_closed = false;
+    ui_label = "Mouse Tracking";
+> = false;
+    uniform float TrackOffset<
+        ui_type = "slider";
+        ui_label = "TrackOffset";
+        ui_tooltip = "Opacity";
+        ui_category = "Shape Blending";
+        ui_min = 0.0;
+        ui_max = 1.0;
+        > = 1.0;
 
     uniform int shape < __UNIFORM_COMBO_INT1
         ui_label = "Shape";
@@ -65,7 +77,7 @@ namespace pd80_magicalrectangle
         ui_min = 0;
         ui_max = 360;
         > = 45;
-    uniform float2 center <
+    uniform float2 _center <
         ui_type = "slider";
         ui_label = "Center";
         ui_tooltip = "Center";
@@ -231,11 +243,30 @@ namespace pd80_magicalrectangle
 
     uniform float2 pingpong <
     source = "pingpong"; 
-    min = 0; max = 1; 
-    step = 0.25; 
-    smoothing = 0.8; 
+    min = -1; max = 1.5; 
+    step = 0.32; 
+    smoothing = 0.1; 
     >;
+//    True if specified keycode (in this case the spacebar) is pressed and false otherwise.
+//    If mode is set to "press" the value is true only in the frame the key was initially held down.
+//    If mode is set to "toggle" the value stays true until the key is pressed a second time.
+//  * ``uniform bool left_mouse_button_down < source = "mousebutton"; keycode = 0; mode = ""; >;``  
+//    True if specified mouse button (0 - 4) is pressed and false otherwise.
+//    If mode is set to "press" the value is true only in the frame the key was initially held down.
+//    If mode is set to "toggle" the value stays true until the key is pressed a second time.
+uniform float2 mouse_point < source = "mousepoint"; >;
 
+uniform float frametime < source = "frametime"; >;
+//    Time in milliseconds it took for the last frame to complete.
+//  * ``uniform int framecount < source = "framecount"; >;``  
+//    Total amount of frames since the game started.
+//  * ``uniform float4 date < source = "date"; >;``  
+//    float4(year, month (1 - 12), day of month (1 - 31), time in seconds)
+//  * ``uniform float timer < source = "timer"; >;``  
+//    Gets the position of the mouse cursor in screen coordinates.
+uniform float2 mouse_delta < source = "mousedelta"; >; 
+//    Gets the movement of the mouse cursor in screen coordinates.
+uniform float2 mouse_value < source = "mousewheel"; min = 0.0; max = 10.0; > = 1.0;
     //// TEXTURES ///////////////////////////////////////////////////////////////////
     texture texMagicRectangle { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; };
 
@@ -267,6 +298,9 @@ namespace pd80_magicalrectangle
     */
     void PPVS(in uint id : SV_VertexID, out float4 position : SV_Position, out float2 texcoord : TEXCOORD, out float2 texcoord2 : TEXCOORD2)
     {
+		const float trackOffset = any(mouse_delta.xy) ? TrackOffset * (frametime / 16) : TrackOffset;
+    // const float2 center = lerp(_center, mouse_point,0.5 +  dot(mouse_delta.y, mouse_delta.x)) * int(MouseTrack);
+    const float2 center = MouseTrack ? lerp(_center.xy,float2(mouse_point.x / BUFFER_WIDTH, mouse_point.y / BUFFER_HEIGHT), trackOffset) : _center.xy;
         PostProcessVS(id, position, texcoord);
         float2 uv;
         uv.x         = ( id == 2 ) ? 2.0 : 0.0;
@@ -287,7 +321,7 @@ namespace pd80_magicalrectangle
     //// PIXEL SHADERS //////////////////////////////////////////////////////////////
     float4 PS_Layer_1( float4 pos : SV_Position, float2 texcoord : TEXCOORD, float2 texcoord2 : TEXCOORD2 ) : SV_Target
     {
-    
+   float2 center = _center.xy;
        float speed = pingpong.y > 0 ? pingpong.x : 1 - pingpong.x;
 
     speed *= 0.5 * (1 - Pause);
