@@ -1,4 +1,5 @@
 /**
+* it opens and shuts like a big mouth
  * Border version 1.4.1
  *
  * -- Version 1.0 by Oomek --
