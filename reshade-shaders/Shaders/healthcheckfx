@@ -1,0 +1,130 @@
+
+#include "ReShade.fxh"
+#include "ReShadeUI.fxh"
+
+
+#define getColor(c) tex2Dlod(ReShade::BackBuffer,float4(c,0,0))
+#define getColorSamplerLod(s,c,l) tex2Dlod(s,float4(c.xy,0,l))
+#define getColorSampler(s,c) tex2Dlod(s,float4(c.xy,0,0))
+
+
+
+
+namespace healthestimate
+{
+
+    texture beforeTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
+    sampler beforeSampler { Texture = beforeTex; };
+    texture healthTex {Width = 320; Height = 26;};
+    sampler healthSampler{Texture = healthTex;}; 
+  uniform  float4 goodhp = float4(150, 215, 34, 1.0);
+    uniform float4 badhp = float4(255,90,90,1.0);
+
+
+        texture healthbar { Width = 0.16 * BUFFER_WIDTH; Height = 0.01 * BUFFER_HEIGHT; };
+    sampler healthbar_Sampler { Texture = healthbar; };
+
+
+ void PS_Save(float4 vpos : SV_Position, float2 texcoord : TexCoord, out float4 outColor : SV_Target0) {
+ 			 	if(texcoord.x >= 800 && texcoord.x <= 800+320 && texcoord.y <= 998+26 &&  texcoord.y >= 998)
+       		 	outColor = getColor(texcoord);
+       		 else outColor = float4(0,0,0,0);
+    }	
+    
+    
+    
+    
+    void PS_Save3(float4 vpos : SV_Position, float2 texcoord : TexCoord, out float4 outColor : SV_Target) {
+    	if(texcoord.x >= 800 && texcoord.x <= 800+320 && texcoord.y <= 998+26 &&  texcoord.y >= 998){
+    			outColor = getColor(texcoord);
+    	}
+   	else outColor = float4(0,0,1,0);
+    }
+    //// PIXEL SHADERS //////////////////////////////////////////////////////////////
+    
+    void PS_Save2(float4 vpos : SV_Position, float2 texcoord : TexCoord, out float4 outColor : SV_Target) {
+    
+    if (texcoord.x >= 0.42 *  BUFFER_WIDTH && 
+        texcoord.x <= 0.58 *  BUFFER_WIDTH &&
+        texcoord.y >= 0.93 * BUFFER_HEIGHT &&
+        texcoord.y <= 0.94 * BUFFER_HEIGHT) {
+            outColor = getColor(texcoord);
+        }
+        else{
+        outColor = float4(0,0,0,0);
+        }
+    }
+           
+   float checkHealth (){
+
+
+        float4 fullhealthColor = getColorSampler(healthbar_Sampler,float2(0.58 *  BUFFER_WIDTH, 0.935 * BUFFER_HEIGHT)); 
+        float4 quarterhealthColor = fullhealthColor;
+        float4 halfhealthColor = fullhealthColor;
+        if (fullhealthColor.g < 0.4)
+		{
+            	halfhealthColor = getColorSampler(healthbar_Sampler,float2(0.5 *  BUFFER_WIDTH, 0.935 * BUFFER_HEIGHT)); 
+            	if (halfhealthColor.g < 0.4)
+				{
+    	        quarterhealthColor = getColorSampler(healthbar_Sampler,float2(0.46 *  BUFFER_WIDTH, 0.935 * BUFFER_HEIGHT));}\
+    	        if(quarterhealthColor.r < 0.4) return 0;
+     	       else return 0.25;
+        }
+        else return 1.0;
+
+
+     }
+     
+     
+      void PS_Apply2(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 outColor : SV_Target0) {
+        float4 afterColor = getColor(coords);
+         float4 beforeColor = getColorSampler(beforeSampler,coords);
+		
+   }
+    
+ void PS_Apply(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 outColor : SV_Target0) {
+        float4 afterColor = getColor(coords);
+        outColor = lerp(afterColor,float4(1, 0, 0, 1), checkHealth());
+
+   }
+    
+
+    //// TECHNIQUES /////////////////////////////////////////////////////////////////
+    technique healthsave{
+        pass 
+        {
+            VertexShader   = PostProcessVS;
+            PixelShader    = PS_Save;
+                ClearRenderTargets = false;
+            RenderTarget = beforeTex;
+        }
+        }
+          technique healthsave2{
+               pass {
+               	VertexShader = PostProcessVS;
+               	PixelShader = PS_Save2;
+               	RenderTarget=healthTex;
+               	    ClearRenderTargets = false;
+               }
+               }
+                 technique healthsave{
+               pass
+        {
+            VertexShader   = PostProcessVS;
+            PixelShader    = PS_Save;
+            RenderTarget = healthbar;
+                ClearRenderTargets = false;
+        }
+}
+    
+
+    technique healthchecker{
+        pass {
+        VertexShader = PostProcessVS;
+        ClearRenderTargets = false;
+        PixelShader= PS_Apply;
+        }
+    }
+    
+
+}
