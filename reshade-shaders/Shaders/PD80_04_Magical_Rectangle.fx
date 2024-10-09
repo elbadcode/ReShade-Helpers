@@ -1,4 +1,8 @@
 /*
+
+   Animation added by elbadcode/lobotomyx
+   Looks best with inverted circle. Mouse tracking attempt is very choppy at present. No idea what the use case would be but you basically get an iris transition like in a cartoon
+
     Description : PD80 04 Magical Rectangle for Reshade https://reshade.me/
     Author      : prod80 (Bas Veth)
     License     : MIT, Copyright (c) 2020 prod80
