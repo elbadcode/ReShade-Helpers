@@ -19,7 +19,8 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-    
+
+    this was a shader I wrote for oculus in a context without depth. it did a fantastic job for what it was. I dont think its very useful but it is interesting for color replacement purposes maybe, or could be with refinement
 */
 
 #include "ReShade.fxh"
