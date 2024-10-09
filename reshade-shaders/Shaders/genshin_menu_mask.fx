@@ -18,55 +18,17 @@ namespace GENSHIN_UI_MASK {
 // Textures
 
 
-uniform float BlackMaskPower <
-	ui_category = "Amount";
-	ui_label = "BlackMaskAmount";
+uniform float Smooth <
+	ui_category = "Smooth";
+	ui_label = "Smooth";
 	ui_type = "slider";
-	ui_min = 0.0; ui_max = 2.0; ui_step = 0.1;
-> = 1.0;
-/*
-
-uniform float ClampMax <
-	ui_category = "Clamp";
-	ui_label = "ClampMax";
-	ui_type = "slider";
-	ui_min = 0.0; ui_max = 1.0; ui_step = 1;
-> = 1.0;
+	ui_min = 0.9; ui_max = 1.0; ui_step = 0.01;
+> = 0.99;
 //+*/
-uniform float Alpha <
-	ui_category = "Clamp";
-	ui_label = "Alpha";
-	ui_type = "slider";
-	ui_min = 0.0; ui_max = 1.0; ui_step = 0.1;
-> = 0.1;
-texture AlphaUIMask_Tex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
-sampler AlphaUIMask_Sampler { Texture = AlphaUIMask_Tex; };
 
 
 
-void PS_AlphaUIMask(float4 pos : SV_Position, float2 texcoord : TEXCOORD, out float4 color0 : SV_Target0)
 
-{
-    float4 UIMask = tex2D(ReShade::BackBuffer, texcoord).a ;
-
-    float4 MaskS = step(Alpha, UIMask) ;
-	color0 = tex2D(ReShade::BackBuffer, texcoord) ;
-	color0.a = MaskS.a ;
-}
-
-void PS_AlphaUIRestorePC(float4 pos : SV_Position, float2 texcoord : TEXCOORD, out float4 color : SV_Target)
-{	color = tex2D(ReShade::BackBuffer, texcoord);
-}
-
-
-void PS_AlphaUICut(float4 pos : SV_Position, float2 texcoord : TEXCOORD, out float4 color : SV_Target)
-{
-	float4 GameScreen =  tex2D(AlphaUIMask_Sampler,texcoord);
-	float4 CutS = step(Alpha, GameScreen) ;
-    color.rgb = 0 ;
-	color.a =  GameScreen.a * BlackMaskPower  ;
-
-}
     texture beforeTex { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
     sampler beforeSampler { Texture = beforeTex; };
      texture beforeTex1 { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; };
@@ -84,17 +46,11 @@ void PS_AlphaUICut(float4 pos : SV_Position, float2 texcoord : TEXCOORD, out flo
         float4 beforeColor = getColorSampler(beforeSampler,coords);
  	   float depth = ReShade::GetLinearizedDepth(coords);  
 		float clipped_depth = any(depth < saturate(depth)) ? 0  : depth;
-		outColor = lerp(beforeColor,afterColor, 1- clipped_depth);
+		outColor = lerp(beforeColor,afterColor,( 1- clipped_depth)*Smooth);
 
    }
+   
     
-  void PS_Apply2(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 outColor : SV_Target0) {
-        float4 afterColor = getColor(coords);
-        float4 beforeColor = getColorSampler(beforeSampler1,coords);
-        float opacity = beforeColor.a > 0.34 ? beforeColor.a * 1.2 : beforeColor.a * 0.1;
-		outColor = lerp(beforeColor,afterColor, 1- opacity);
-
-   }
 
 
 // TEHCNIQUES 
@@ -119,69 +75,5 @@ void PS_AlphaUICut(float4 pos : SV_Position, float2 texcoord : TEXCOORD, out flo
             PixelShader = PS_Apply;
         }
     }
-     technique GENSHIN_UI_MASK_BOTTOM2<
-        ui_label = "Genshin UI Mask Bottom2";
-    > {
-        pass {
-        ClearRenderTargets = true;
-            VertexShader = PostProcessVS;
-            PixelShader = PS_Apply;
-        }
-    }
+  
     
-technique AlphaUIMask <
-	ui_tooltip = "Keep UI";
->
-{
-	pass PS_AlphaUIMask
-	{
-
-		VertexShader = PostProcessVS;
-		PixelShader = PS_AlphaUIMask;
-		RenderTarget0 = AlphaUIMask_Tex;
-	}
-
-}
-//////////////////////////////////////////////
-technique AlphaUIRestore <
-	ui_tooltip = "Restore UI";
->
-{
-	pass
-	{
-		VertexShader = PostProcessVS;
-		PixelShader = PS_AlphaUIRestorePC;
-
-		ClearRenderTargets = false;
-		
-		BlendEnable = true;
-		SrcBlend = SRCALPHA;
-		DestBlend = INVSRCALPHA;
-	}
-	
-
-}//////////////////////////////////
-technique AlphaUICut <
-	ui_tooltip = "black mask,prevent UI from affecting other fx";
->
-{
-	pass
-	{
-		VertexShader = PostProcessVS;
-		PixelShader = PS_AlphaUICut;
-		
-		ClearRenderTargets = false;
-		
-		BlendEnable = true;
-		SrcBlend = SRCALPHA;
-		DestBlend = INVSRCALPHA;
-		
-		
-// 		// Enable or disable the sten
-		
-	}
-}
- 
-
-
-}
