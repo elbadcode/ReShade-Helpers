@@ -30,7 +30,7 @@ with open(logfile, "w") as logfile:
             for j in shaderlist:
                 j_index, j_name, j_path = str(j).split(", ")
                 i_index, i_name, i_path = str(i).split(", ")
-                if j_name == i_name and j_path != i_path:
+                if j_name == i_name and j_path != i_path and not j_path.endswith(".fxh"):
                     dupecount += 1
                     print(f"{i_name} {j}")
                     j_path2 = str(j_path) + ".bak"
