@@ -1,6 +1,4 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Literally the original shader but you get several layers. Great for blending in subtle effects like ascii or halftone with depth masking
-//
 //
 // DH_UBER_MASK 0.3.1
 //
@@ -351,8 +349,52 @@ namespace DH_UBER_MASK {
         ui_tooltip = "";
     > = 0; 
 
+
+   uniform float fDepthMaskAnimatedPos<
+        ui_type = "slider";
+        ui_category = "animated mask";
+        ui_label = "Depth bounds";
+        ui_min = 0.0; ui_max = 1.0;
+        ui_step = 0.001;
+        ui_tooltip = "";
+    > = 0.1;
     
+      uniform float fDepthMaskAnimatedWidth<
+        ui_type = "slider";
+        ui_category = "animated mask";
+        ui_label = "Depth width";
+        ui_min = 0.0; ui_max = 1.0;
+        ui_step = 0.001;
+        ui_tooltip = "";
+    > = 0.2;
     
+          uniform float fDepthMaskAnimatedSpeed<
+        ui_type = "slider";
+        ui_category = "animated mask";
+        ui_label = "speed";
+        ui_min = 0.0; ui_max = 10.0;
+        ui_step = 0.001;
+        ui_tooltip = "";
+    > = 0.2;
+    uniform bool Flip <
+	ui_category = "animated mask";
+	ui_label = "FLip";
+	ui_type = "checkbox";
+> = false;
+    uniform float2 pingpong <
+	source = "pingpong"; 
+	min = 0.0; max = 1.0; 
+	step = 0.2; 
+	smoothing = 0.01; 
+	>;
+	
+	    uniform bool MouseControl <
+	ui_category = "animated mask";
+	ui_label = "Mouse wheel control";
+	ui_type = "checkbox";
+> = false;
+	
+        uniform float2 mouse_value < source = "mousewheel"; min = 0.0; max = 10.0; > = 1.0;
         
 float when_gt(float x, float y) {
     return max(sign(x - y), 0.0f);
@@ -462,12 +504,12 @@ void PS_Apply3(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 o
 void PS_Apply2(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 outColor : SV_Target0) {
         float4 afterColor = getColor(coords);
         float4 beforeColor2 = getColorSampler(beforeSampler2,coords);
-
+			
         float mask = 0.0;
         
         float depth = ReShade::GetLinearizedDepth(coords);
         mask += computeMask(depth,fDepthMaskNear2);
-        mask += computeMask(depth,fDepthMaskMid2);
+        mask += computeMask(depth,fDepthMaskMid2 );
         mask += computeMask(depth,fDepthMaskFar2);
 
         float brightness = getBrightness(beforeColor2.rgb);
@@ -525,6 +567,35 @@ void PS_Apply2(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 o
     	
     	outColor = beforeColor;
     }
+
+	void PS_ApplyAnimated(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 outColor : SV_Target0) {
+        float4 afterColor = getColor(coords);
+        float4 beforeColor = getColorSampler(beforeSampler,coords);
+				float speed = MouseControl ? mouse_value.x * 0.1 :  pingpong.x ;
+
+	
+
+	const float depthOffset =  speed * fDepthMaskAnimatedSpeed;
+        float mask = 0.0;
+        
+        float depth = ReShade::GetLinearizedDepth(coords);
+        mask += computeMask(depth,float3(fDepthMaskAnimatedPos - depthOffset, fDepthMaskAnimatedWidth, 1.0));
+      
+
+ 
+     //   float diff = saturate(getDifference(beforeColor2.rgb,afterColor.rgb)*2.0);
+     //   mask += computeMask(diff,float3(1.0,fDiffMask));
+
+		mask =  Flip ? 1- saturate(mask):  saturate(mask);
+		if(iDebug2==1) {
+        	outColor =  float4(mask,mask,mask,1.0);
+		} else if(iDebug2==2) {
+        	outColor = lerp(afterColor,float4(0,1,0,1),mask);
+		} else {
+        	outColor = lerp(beforeColor,afterColor, 1.0-mask);
+        }
+    }
+    
 
 
 
@@ -593,7 +664,28 @@ void PS_Apply2(float4 vpos : SV_Position, float2 coords : TexCoord, out float4 o
         }
     }
     
-    
+        technique DH_UBER_MASK_ANIMATED_BEFORE<
+        ui_label = "DH_UBER_MASK 0.3.1 ANIMATED BEFORE";
+    > {
+        pass {
+            VertexShader = PostProcessVS;
+            PixelShader = PS_Save;
+            RenderTarget = beforeTex;
+            
+        }
+    }
+
+    technique  DH_UBER_MASK_ANIMATED_AFTER<
+        ui_label = "DH_UBER_MASK 0.3.1 ANIMATED AFTER";
+    > {
+        pass {
+            VertexShader = PostProcessVS;
+            PixelShader = PS_ApplyAnimated;
+                     BlendOp = Max;
+ 		BlendOpAlpha = Max;
+ 	 BlendEnable = true;
+        }
+    }
     technique DH_UBER_MASK_BEFORE<
         ui_label = "DH_UBER_MASK 0.3.1 BEFORE";
     > {
