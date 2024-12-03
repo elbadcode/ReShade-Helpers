@@ -5,8 +5,7 @@ these are mostly just other people's shaders with some fun little tweaks. replac
 # DH uber mask
 - added like 5 additional masks lol you can use the depth only masks for layering effects like in a photo editor almost
 - added an animated mask, it needs a bit more work or a lot of manual tweaking of settings but theoretically it can animate any effect by depth 
-# DH anime
-- just tweaked the ranges on some UI settings to make it more useful and usable as I was usually typing the numbers manually to go outside the range
+
 
 # PD80_06_Depth_SlicerBAD.fx
 - port of a glsl chromakey shader I wrote for alxr which needed accurate keying with No depth
