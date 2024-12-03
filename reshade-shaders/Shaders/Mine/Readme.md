@@ -1,0 +1,3 @@
+- port of a glsl chromakey shader I wrote for alxr which needed accurate keying with No depth
+- Was in progress adding some depth features and just pasted my code into pd80s depth slicer
+- unfinished and idk if it ever will be because I don't know what the goal would be but it can do extremely accurate color replacement with minimal overhead
